@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body {
+			background-color: white;
+			color: black;
+		}
+	</style>
+</head>
+<body>
+<h1>Testing Ads with Video Element</h1>
+<video controls preload="metadata" id="player">
+    <source id="source" src="https://cdn.http.anno.channel4.com/m/1/504112/89/10420313/31_source_116073_524005_3114781_20.mp4" type="video/mp4"/>
+    Video not supported.
+</video>
+<div>
+	<h3>Select on remote url to play:</h3>
+	<div>0: 'https://cdn.http.anno.channel4.com/m/1/504112/89/10420313/31_source_116073_524005_3114781_20.mp4',</div>
+	<div>1: 'https://cdn.http.anno.channel4.com/m/1/174057/84/10128084/CH4_31_02_50_AMZPRWR006010_001_3041722_20.mp4',</div>
+	<div>2: 'https://cdn.http.anno.channel4.com/m/1/174057/95/10518111/CH4_31_02_50_EDNLGFA003010_001_3165319_20.mp4',</div>
+	<div>3: 'https://cdn.http.anno.channel4.com/m/1/174057/73/10549193/CH4_31_02_50_BURTMDS791020_001_3165340_20.mp4',</div>
+	<div>4: 'https://cdn.http.anno.channel4.com/m/1/174057/80/10493264/CH4_31_02_50_BURTMDS776010_001_3141424_20.mp4'</div>
+</div>
+</body>
+<script type="text/JavaScript">
+	// feels hacky, see how this works
+	const keys = {
+		228: 'fastforward',
+		39: 'fastforward',
+		227: 'rewind',
+		37: 'rewind',
+		179: 'play_pause',
+		13: 'play_pause',
+		48: 0,
+		49: 1,
+		50: 2,
+		51: 3,
+		52: 4,
+		53: 5,
+		54: 6,
+		55: 7,
+		56: 8,
+		57: 9,
+	};
+
+	let isPlaying = false;
+
+	const urlSelection = {
+      0: 'https://cdn.http.anno.channel4.com/m/1/504112/89/10420313/31_source_116073_524005_3114781_20.mp4',
+      1: 'https://cdn.http.anno.channel4.com/m/1/174057/84/10128084/CH4_31_02_50_AMZPRWR006010_001_3041722_20.mp4',
+      2: 'https://cdn.http.anno.channel4.com/m/1/174057/95/10518111/CH4_31_02_50_EDNLGFA003010_001_3165319_20.mp4',
+      3: 'https://cdn.http.anno.channel4.com/m/1/174057/73/10549193/CH4_31_02_50_BURTMDS791020_001_3165340_20.mp4',
+      4: 'https://cdn.http.anno.channel4.com/m/1/174057/80/10493264/CH4_31_02_50_BURTMDS776010_001_3141424_20.mp4'
+    };
+
+	const setVideoUrl = (selection) => {
+		if (urlSelection[selection]) {
+			console.log('Setting video source:', urlSelection[selection]);
+	  		const player = document.getElementById('player');
+	  		const source = document.getElementById('source');
+    		player.pause();
+			isPlaying = false;
+			source.setAttribute('src', urlSelection[selection]);
+    		player.load();
+		} else {
+			console.log('No video url set for', selection);
+		}
+	}
+
+	window.addEventListener('load', (event) => {
+	  console.log('Loaded');
+	  const player = document.getElementById('player');
+
+	  // add key handling
+	  window.addEventListener('keydown', (e) => {
+	  	console.log('Keydown detected:', keys[e.keyCode], '- keyCode:', e.keyCode);
+
+	  	switch(keys[e.keyCode]) {
+	        case 'play_pause':
+				if (isPlaying) {
+					console.log('Pausing video');
+					player.pause();
+					isPlaying = false;
+				} else {
+					console.log('Playing video');
+					player.play();
+					isPlaying = true;
+				}
+				break;
+	        case 0:
+	        case 1:
+	        case 2:
+	        case 3:
+	        case 4:
+	        case 5:
+	        case 6:
+	        case 7:
+	        case 8:
+	        case 9:
+	        	setVideoUrl(keys[e.keyCode]);
+				break;
+	        default:
+				break;
+	      }
+	  });
+	  player.addEventListener('ended', (e) => {
+		console.log('Playback ended');
+	  	isPlaying = false;
+    	player.load();
+	  });
+	});
+</script>
+</html>
