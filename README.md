@@ -1,9 +1,9 @@
-Simple Node Server
-==================
+Generic Players
+===============
 
 Run Locally
 -----------
 
 `npm start` or `node server.js`
 
-localhost:1337/shakaPlayer.html
+Shaka Player with ad urls - localhost:1337/shakaPlayer.html
