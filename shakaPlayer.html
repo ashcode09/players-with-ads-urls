@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Shaka Player compiled library: -->
+    <script src="shaka-player.compiled.js"></script>
+  <style>
+    body {
+      background-color: white;
+      color: black;
+    }
+  </style>
+  </head>
+  <body>
+    <video id="video"
+           width="640"
+           poster="//shaka-player-demo.appspot.com/assets/poster.jpg"
+           controls></video>
+    <div>
+    <h3>Select on remote url to play:</h3>
+    <div>0: 'https://cdn.http.anno.channel4.com/m/1/504112/89/10420313/31_source_116073_524005_3114781_20.mp4',</div>
+    <div>1: 'https://cdn.http.anno.channel4.com/m/1/174057/84/10128084/CH4_31_02_50_AMZPRWR006010_001_3041722_20.mp4',</div>
+    <div>2: 'https://cdn.http.anno.channel4.com/m/1/174057/95/10518111/CH4_31_02_50_EDNLGFA003010_001_3165319_20.mp4',</div>
+    <div>3: 'https://cdn.http.anno.channel4.com/m/1/174057/73/10549193/CH4_31_02_50_BURTMDS791020_001_3165340_20.mp4',</div>
+    <div>4: 'https://cdn.http.anno.channel4.com/m/1/174057/80/10493264/CH4_31_02_50_BURTMDS776010_001_3141424_20.mp4'</div>
+  </div>
+  </body>
+<script>
+
+const keys = {
+  228: 'fastforward',
+  39: 'fastforward',
+  227: 'rewind',
+  37: 'rewind',
+  179: 'play_pause',
+  13: 'play_pause',
+  48: 0,
+  49: 1,
+  50: 2,
+  51: 3,
+  52: 4,
+  53: 5,
+  54: 6,
+  55: 7,
+  56: 8,
+  57: 9,
+};
+
+const urlSelection = {
+  0: 'https://cdn.http.anno.channel4.com/m/1/504112/89/10420313/31_source_116073_524005_3114781_20.mp4',
+  1: 'https://cdn.http.anno.channel4.com/m/1/174057/84/10128084/CH4_31_02_50_AMZPRWR006010_001_3041722_20.mp4',
+  2: 'https://cdn.http.anno.channel4.com/m/1/174057/95/10518111/CH4_31_02_50_EDNLGFA003010_001_3165319_20.mp4',
+  3: 'https://cdn.http.anno.channel4.com/m/1/174057/73/10549193/CH4_31_02_50_BURTMDS791020_001_3165340_20.mp4',
+  4: 'https://cdn.http.anno.channel4.com/m/1/174057/80/10493264/CH4_31_02_50_BURTMDS776010_001_3141424_20.mp4'
+};
+
+let isPlaying = false;
+let player = null;
+
+function setVideoUrl(selection) {
+  loadVideo(urlSelection[selection]);
+}
+
+async function initApp() {
+
+  // Install built-in polyfills to patch browser incompatibilities.
+  shaka.polyfill.installAll();
+
+  // Check to see if the browser supports the basic APIs Shaka needs.
+  console.log('Is browser supported by Shaka?', shaka.Player.isBrowserSupported());
+
+  function Lc(b) {
+    // console.log('Lc()', (navigator.userAgent || "").includes(b))
+    return (navigator.userAgent || "").includes(b)
+  }
+
+  function Kc() {
+    return Lc("Tizen")
+  }
+
+  function Ic(b) {
+    // console.log('Ic()', "" != Jc().canPlayType(b))
+    return "" != Jc().canPlayType(b)
+  }
+
+  function I(b) {
+    this.b = b;
+    this.a = null
+  }
+
+  function Jc() {
+    if (video) return video;
+    Pc || (Pc = new I(function() {
+        video = null
+    }));
+    (video = document.getElementsByTagName("video")[0] || document.getElementsByTagName("audio")[0]) || (video = document.createElement("video"));
+    Pc.R(1);
+    console.log(video);
+    return video
+  }
+
+  function Mc() {
+    // console.log('Mc()', !!navigator.vendor, navigator.vendor.includes("Apple"));
+    return !!navigator.vendor && navigator.vendor.includes("Apple") && !Kc()
+  }
+
+  function Nc() {
+    // console.log('Nc() - !Mc()', !Mc());
+    if (!Mc()) return null;
+    var b = navigator.userAgent.match(/Version\/(\d+)/);
+    // console.log('Nc() -b ', b);
+    return b ? parseInt(b[1], 10) : (b = navigator.userAgent.match(/OS (\d+)(?:_\d+)?/)) ? parseInt(b[1], 10) : null
+  }
+
+  function Hc() {
+    // console.log('Hc()', window.MediaSource, MediaSource.isTypeSupported);
+    return window.MediaSource && MediaSource.isTypeSupported ? !0 : !1
+  }
+
+  isBrowserSupported = function() {
+    console.log('Our UA is:', navigator.userAgent);
+    if (!(window.Promise && window.Uint8Array && Array.prototype.forEach)) return !1;
+    var b = Nc();
+    console.log('Shaka apparently supports Safari Version 13 and above, but ours is:', b);
+    Hc(); // running to see what's returned
+    Ic("application/x-mpegurl"); // running to see what's returned
+    return b && 12 > b
+      || !(window.MediaKeys && window.navigator && window.navigator.requestMediaKeySystemAccess && window.MediaKeySystemAccess && window.MediaKeySystemAccess.prototype.getConfiguration)
+      ? !1 : Hc() ? !0 : Ic("application/x-mpegurl")
+  };
+  isBrowserSupported();
+
+  await initPlayer();
+
+  // add key handling
+  window.addEventListener('keydown', (e) => {
+    console.log('Keydown detected:', keys[e.keyCode], '- keyCode:', e.keyCode);
+
+    switch(keys[e.keyCode]) {
+      case 'play_pause':
+        if (isPlaying) {
+          console.log('Selected pause');
+          video.pause();
+          isPlaying = false;
+        } else {
+          console.log('Selected play');
+          video.play();
+          isPlaying = true;
+        }
+        break;
+      case 0:
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+      case 8:
+      case 9:
+        setVideoUrl(keys[e.keyCode]);
+        break;
+      default:
+        break;
+    }
+  });
+}
+
+async function initPlayer() {
+  // Create a Player instance.
+  const video = document.getElementById('video');
+  player = new shaka.Player(video);
+  console.log('Initialised Shaka Player video element');
+
+  // Listen for error events.
+  player.addEventListener('error', onErrorEvent);
+  video.addEventListener('error', onErrorEvent);
+
+  function pascalCase(str) {
+    str = str.replace(/\w+/g,
+      function(w){return w[0].toUpperCase() + w.slice(1).toLowerCase();});
+    return str;
+  }
+  const bounded = str => `__boundOn${pascalCase(str)}`;
+
+  const VIDEO_EVENTS = ['playing', 'ended', 'loaded-data', 'pause', 'time-update', 'seeked'];
+  const SHAKA_EVENTS = [
+    'playing',
+    'adaptation',
+    'buffering',
+    'emsg',
+    'error',
+    'loading',
+    'streaming',
+    'tracks-changed',
+    'unloading'
+  ];
+  const SHAKA_FAKE_EVENTS = [
+    'drm-session-update',
+    'expiration-updated',
+    'large-gap',
+    'text-changed',
+    'text-track-visibility',
+    'variant-changed'
+  ];
+
+      [
+        [VIDEO_EVENTS, video],
+        [SHAKA_EVENTS, player],
+        [SHAKA_FAKE_EVENTS, player]
+      ].forEach(([events, dispatcher]) =>
+        events.forEach(event => {
+          dispatcher.addEventListener(event.toLowerCase(), (e) => {
+            console.log('Received event', event.toLowerCase(), e);
+          });
+        })
+      );
+
+  loadVideo(urlSelection[0]);
+}
+
+async function loadVideo(manifestUri) {
+    // Try to load a manifest.
+    // This is an asynchronous process.
+    isPlaying = false;
+  try {
+      await player.load(manifestUri);
+      // This runs if the asynchronous load is successful.
+      console.log('The video has now been loaded!');
+    } catch (e) {
+      // onError is executed if the asynchronous load fails.
+      onError(e);
+    }
+}
+
+function onErrorEvent(event) {
+  // Extract the shaka.util.Error object from the event.
+  onError(event.detail);
+}
+
+function onError(error) {
+  // Log the error.
+  console.error('Error code', error.code, 'object', error);
+  throw new error.GenericError(e);
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+
+</script>
+</html>
